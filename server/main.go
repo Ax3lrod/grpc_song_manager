@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb+srv://axlr0d_:axelrod@cluster0.r5mqd.mongodb.net/insis_project_2?retryWrites=true&w=majority&appName=Cluster0"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<YOUR_MONGODB_ATLAS_URI>"))
 	if err != nil {
 		log.Fatal(err)
 	}
