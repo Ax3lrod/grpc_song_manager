@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package song;
+
+option go_package = "grpc-song-manager/proto;song";
+
+message Song {
+  string id = 1;
+  string title = 2;
+  string artist = 3;
+  string album = 4;
+  string genre = 5;
+}
+
+message SongRequest {
+  string id = 1;
+}
+
+message SongList {
+  repeated Song songs = 1;
+}
+
+message SongInput {
+  string title = 1;
+  string artist = 2;
+  string album = 3;
+  string genre = 4;
+}
+
+message Empty {}
+
+service SongService {
+  rpc CreateSong(SongInput) returns (Song);
+  rpc GetSong(SongRequest) returns (Song);
+  rpc ListSongs(Empty) returns (SongList);
+  rpc UpdateSong(Song) returns (Song);
+  rpc DeleteSong(SongRequest) returns (Empty);
+}
