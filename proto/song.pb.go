@@ -554,6 +554,94 @@ func (x *RecommendResponse) GetReason() string {
 	return ""
 }
 
+type GenreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Genre         string                 `protobuf:"bytes,1,opt,name=genre,proto3" json:"genre,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenreRequest) Reset() {
+	*x = GenreRequest{}
+	mi := &file_proto_song_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenreRequest) ProtoMessage() {}
+
+func (x *GenreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_song_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenreRequest.ProtoReflect.Descriptor instead.
+func (*GenreRequest) Descriptor() ([]byte, []int) {
+	return file_proto_song_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GenreRequest) GetGenre() string {
+	if x != nil {
+		return x.Genre
+	}
+	return ""
+}
+
+type ArtistRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Artist        string                 `protobuf:"bytes,1,opt,name=artist,proto3" json:"artist,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ArtistRequest) Reset() {
+	*x = ArtistRequest{}
+	mi := &file_proto_song_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ArtistRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ArtistRequest) ProtoMessage() {}
+
+func (x *ArtistRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_song_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ArtistRequest.ProtoReflect.Descriptor instead.
+func (*ArtistRequest) Descriptor() ([]byte, []int) {
+	return file_proto_song_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ArtistRequest) GetArtist() string {
+	if x != nil {
+		return x.Artist
+	}
+	return ""
+}
+
 var File_proto_song_proto protoreflect.FileDescriptor
 
 const file_proto_song_proto_rawDesc = "" +
@@ -597,7 +685,11 @@ const file_proto_song_proto_rawDesc = "" +
 	"\x11RecommendResponse\x12\x1e\n" +
 	"\x04song\x18\x01 \x01(\v2\n" +
 	".song.SongR\x04song\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason2\x96\x03\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"$\n" +
+	"\fGenreRequest\x12\x14\n" +
+	"\x05genre\x18\x01 \x01(\tR\x05genre\"'\n" +
+	"\rArtistRequest\x12\x16\n" +
+	"\x06artist\x18\x01 \x01(\tR\x06artist2\xb5\x04\n" +
 	"\vSongService\x12)\n" +
 	"\n" +
 	"CreateSong\x12\x0f.song.SongInput\x1a\n" +
@@ -614,7 +706,13 @@ const file_proto_song_proto_rawDesc = "" +
 	"\bSongChat\x12\x0f.song.SongInput\x1a\n" +
 	".song.Song(\x010\x01\x12E\n" +
 	"\x13CollaboratePlaylist\x12\x14.song.PlaylistAction\x1a\x14.song.PlaylistUpdate(\x010\x01\x12@\n" +
-	"\tRecommend\x12\x16.song.RecommendRequest\x1a\x17.song.RecommendResponse(\x010\x01B\x1eZ\x1cgrpc-song-manager/proto;songb\x06proto3"
+	"\tRecommend\x12\x16.song.RecommendRequest\x1a\x17.song.RecommendResponse(\x010\x01\x12+\n" +
+	"\x0eStreamAllSongs\x12\v.song.Empty\x1a\n" +
+	".song.Song0\x01\x126\n" +
+	"\x12StreamSongsByGenre\x12\x12.song.GenreRequest\x1a\n" +
+	".song.Song0\x01\x128\n" +
+	"\x13StreamSongsByArtist\x12\x13.song.ArtistRequest\x1a\n" +
+	".song.Song0\x01B\x1eZ\x1cgrpc-song-manager/proto;songb\x06proto3"
 
 var (
 	file_proto_song_proto_rawDescOnce sync.Once
@@ -629,7 +727,7 @@ func file_proto_song_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_song_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_song_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_song_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_song_proto_goTypes = []any{
 	(PlaylistAction_ActionType)(0), // 0: song.PlaylistAction.ActionType
 	(*Song)(nil),                   // 1: song.Song
@@ -641,6 +739,8 @@ var file_proto_song_proto_goTypes = []any{
 	(*PlaylistUpdate)(nil),         // 7: song.PlaylistUpdate
 	(*RecommendRequest)(nil),       // 8: song.RecommendRequest
 	(*RecommendResponse)(nil),      // 9: song.RecommendResponse
+	(*GenreRequest)(nil),           // 10: song.GenreRequest
+	(*ArtistRequest)(nil),          // 11: song.ArtistRequest
 }
 var file_proto_song_proto_depIdxs = []int32{
 	1,  // 0: song.SongList.songs:type_name -> song.Song
@@ -656,16 +756,22 @@ var file_proto_song_proto_depIdxs = []int32{
 	4,  // 10: song.SongService.SongChat:input_type -> song.SongInput
 	6,  // 11: song.SongService.CollaboratePlaylist:input_type -> song.PlaylistAction
 	8,  // 12: song.SongService.Recommend:input_type -> song.RecommendRequest
-	1,  // 13: song.SongService.CreateSong:output_type -> song.Song
-	1,  // 14: song.SongService.GetSong:output_type -> song.Song
-	3,  // 15: song.SongService.ListSongs:output_type -> song.SongList
-	1,  // 16: song.SongService.UpdateSong:output_type -> song.Song
-	5,  // 17: song.SongService.DeleteSong:output_type -> song.Empty
-	1,  // 18: song.SongService.SongChat:output_type -> song.Song
-	7,  // 19: song.SongService.CollaboratePlaylist:output_type -> song.PlaylistUpdate
-	9,  // 20: song.SongService.Recommend:output_type -> song.RecommendResponse
-	13, // [13:21] is the sub-list for method output_type
-	5,  // [5:13] is the sub-list for method input_type
+	5,  // 13: song.SongService.StreamAllSongs:input_type -> song.Empty
+	10, // 14: song.SongService.StreamSongsByGenre:input_type -> song.GenreRequest
+	11, // 15: song.SongService.StreamSongsByArtist:input_type -> song.ArtistRequest
+	1,  // 16: song.SongService.CreateSong:output_type -> song.Song
+	1,  // 17: song.SongService.GetSong:output_type -> song.Song
+	3,  // 18: song.SongService.ListSongs:output_type -> song.SongList
+	1,  // 19: song.SongService.UpdateSong:output_type -> song.Song
+	5,  // 20: song.SongService.DeleteSong:output_type -> song.Empty
+	1,  // 21: song.SongService.SongChat:output_type -> song.Song
+	7,  // 22: song.SongService.CollaboratePlaylist:output_type -> song.PlaylistUpdate
+	9,  // 23: song.SongService.Recommend:output_type -> song.RecommendResponse
+	1,  // 24: song.SongService.StreamAllSongs:output_type -> song.Song
+	1,  // 25: song.SongService.StreamSongsByGenre:output_type -> song.Song
+	1,  // 26: song.SongService.StreamSongsByArtist:output_type -> song.Song
+	16, // [16:27] is the sub-list for method output_type
+	5,  // [5:16] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -682,7 +788,7 @@ func file_proto_song_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_song_proto_rawDesc), len(file_proto_song_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

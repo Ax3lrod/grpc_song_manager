@@ -27,6 +27,9 @@ const (
 	SongService_SongChat_FullMethodName            = "/song.SongService/SongChat"
 	SongService_CollaboratePlaylist_FullMethodName = "/song.SongService/CollaboratePlaylist"
 	SongService_Recommend_FullMethodName           = "/song.SongService/Recommend"
+	SongService_StreamAllSongs_FullMethodName      = "/song.SongService/StreamAllSongs"
+	SongService_StreamSongsByGenre_FullMethodName  = "/song.SongService/StreamSongsByGenre"
+	SongService_StreamSongsByArtist_FullMethodName = "/song.SongService/StreamSongsByArtist"
 )
 
 // SongServiceClient is the client API for SongService service.
@@ -41,6 +44,9 @@ type SongServiceClient interface {
 	SongChat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SongInput, Song], error)
 	CollaboratePlaylist(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PlaylistAction, PlaylistUpdate], error)
 	Recommend(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[RecommendRequest, RecommendResponse], error)
+	StreamAllSongs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Song], error)
+	StreamSongsByGenre(ctx context.Context, in *GenreRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Song], error)
+	StreamSongsByArtist(ctx context.Context, in *ArtistRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Song], error)
 }
 
 type songServiceClient struct {
@@ -140,6 +146,63 @@ func (c *songServiceClient) Recommend(ctx context.Context, opts ...grpc.CallOpti
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SongService_RecommendClient = grpc.BidiStreamingClient[RecommendRequest, RecommendResponse]
 
+func (c *songServiceClient) StreamAllSongs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Song], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SongService_ServiceDesc.Streams[3], SongService_StreamAllSongs_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[Empty, Song]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_StreamAllSongsClient = grpc.ServerStreamingClient[Song]
+
+func (c *songServiceClient) StreamSongsByGenre(ctx context.Context, in *GenreRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Song], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SongService_ServiceDesc.Streams[4], SongService_StreamSongsByGenre_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[GenreRequest, Song]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_StreamSongsByGenreClient = grpc.ServerStreamingClient[Song]
+
+func (c *songServiceClient) StreamSongsByArtist(ctx context.Context, in *ArtistRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Song], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SongService_ServiceDesc.Streams[5], SongService_StreamSongsByArtist_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ArtistRequest, Song]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_StreamSongsByArtistClient = grpc.ServerStreamingClient[Song]
+
 // SongServiceServer is the server API for SongService service.
 // All implementations must embed UnimplementedSongServiceServer
 // for forward compatibility.
@@ -152,6 +215,9 @@ type SongServiceServer interface {
 	SongChat(grpc.BidiStreamingServer[SongInput, Song]) error
 	CollaboratePlaylist(grpc.BidiStreamingServer[PlaylistAction, PlaylistUpdate]) error
 	Recommend(grpc.BidiStreamingServer[RecommendRequest, RecommendResponse]) error
+	StreamAllSongs(*Empty, grpc.ServerStreamingServer[Song]) error
+	StreamSongsByGenre(*GenreRequest, grpc.ServerStreamingServer[Song]) error
+	StreamSongsByArtist(*ArtistRequest, grpc.ServerStreamingServer[Song]) error
 	mustEmbedUnimplementedSongServiceServer()
 }
 
@@ -185,6 +251,15 @@ func (UnimplementedSongServiceServer) CollaboratePlaylist(grpc.BidiStreamingServ
 }
 func (UnimplementedSongServiceServer) Recommend(grpc.BidiStreamingServer[RecommendRequest, RecommendResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method Recommend not implemented")
+}
+func (UnimplementedSongServiceServer) StreamAllSongs(*Empty, grpc.ServerStreamingServer[Song]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamAllSongs not implemented")
+}
+func (UnimplementedSongServiceServer) StreamSongsByGenre(*GenreRequest, grpc.ServerStreamingServer[Song]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamSongsByGenre not implemented")
+}
+func (UnimplementedSongServiceServer) StreamSongsByArtist(*ArtistRequest, grpc.ServerStreamingServer[Song]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamSongsByArtist not implemented")
 }
 func (UnimplementedSongServiceServer) mustEmbedUnimplementedSongServiceServer() {}
 func (UnimplementedSongServiceServer) testEmbeddedByValue()                     {}
@@ -318,6 +393,39 @@ func _SongService_Recommend_Handler(srv interface{}, stream grpc.ServerStream) e
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SongService_RecommendServer = grpc.BidiStreamingServer[RecommendRequest, RecommendResponse]
 
+func _SongService_StreamAllSongs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SongServiceServer).StreamAllSongs(m, &grpc.GenericServerStream[Empty, Song]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_StreamAllSongsServer = grpc.ServerStreamingServer[Song]
+
+func _SongService_StreamSongsByGenre_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GenreRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SongServiceServer).StreamSongsByGenre(m, &grpc.GenericServerStream[GenreRequest, Song]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_StreamSongsByGenreServer = grpc.ServerStreamingServer[Song]
+
+func _SongService_StreamSongsByArtist_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ArtistRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SongServiceServer).StreamSongsByArtist(m, &grpc.GenericServerStream[ArtistRequest, Song]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_StreamSongsByArtistServer = grpc.ServerStreamingServer[Song]
+
 // SongService_ServiceDesc is the grpc.ServiceDesc for SongService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -364,6 +472,21 @@ var SongService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _SongService_Recommend_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "StreamAllSongs",
+			Handler:       _SongService_StreamAllSongs_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamSongsByGenre",
+			Handler:       _SongService_StreamSongsByGenre_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamSongsByArtist",
+			Handler:       _SongService_StreamSongsByArtist_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "proto/song.proto",

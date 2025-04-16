@@ -51,6 +51,14 @@ message RecommendResponse {
   string reason = 2;       // misal: "because you said chill"
 }
 
+message GenreRequest {
+  string genre = 1;
+}
+
+message ArtistRequest {
+  string artist = 1;
+}
+
 service SongService {
   rpc CreateSong(SongInput) returns (Song);
   rpc GetSong(SongRequest) returns (Song);
@@ -60,4 +68,7 @@ service SongService {
   rpc SongChat(stream SongInput) returns (stream Song);
   rpc CollaboratePlaylist(stream PlaylistAction) returns (stream PlaylistUpdate);
   rpc Recommend(stream RecommendRequest) returns (stream RecommendResponse);
+  rpc StreamAllSongs(Empty) returns (stream Song);
+  rpc StreamSongsByGenre(GenreRequest) returns (stream Song);
+  rpc StreamSongsByArtist(ArtistRequest) returns (stream Song);
 }

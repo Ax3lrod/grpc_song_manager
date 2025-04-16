@@ -354,4 +354,67 @@ func (s *SongService) Recommend(stream pb.SongService_RecommendServer) error {
 	  }
 	}
   }
+
+func (s *SongService) StreamAllSongs(req *pb.Empty, stream pb.SongService_StreamAllSongsServer) error {
+	ctx := stream.Context()
+	songs, err := s.Repo.List(ctx)
+	if err != nil {
+	  return err
+	}
+	for _, song := range songs {
+	  res := &pb.Song{
+		Id:     song.ID,
+		Title:  song.Title,
+		Artist: song.Artist,
+		Album:  song.Album,
+		Genre:  song.Genre,
+	  }
+	  if err := stream.Send(res); err != nil {
+		return err
+	  }
+	}
+	return nil
+  }
+  
+func (s *SongService) StreamSongsByGenre(req *pb.GenreRequest, stream pb.SongService_StreamSongsByGenreServer) error {
+	ctx := stream.Context()
+	songs, err := s.Repo.FindByGenre(ctx, req.Genre)
+	if err != nil {
+	  return err
+	}
+	for _, song := range songs {
+	  res := &pb.Song{
+		Id:     song.ID,
+		Title:  song.Title,
+		Artist: song.Artist,
+		Album:  song.Album,
+		Genre:  song.Genre,
+	  }
+	  if err := stream.Send(res); err != nil {
+		return err
+	  }
+	}
+	return nil
+  }
+  
+func (s *SongService) StreamSongsByArtist(req *pb.ArtistRequest, stream pb.SongService_StreamSongsByArtistServer) error {
+	ctx := stream.Context()
+	songs, err := s.Repo.FindByArtist(ctx, req.Artist)
+	if err != nil {
+	  return err
+	}
+	for _, song := range songs {
+	  res := &pb.Song{
+		Id:     song.ID,
+		Title:  song.Title,
+		Artist: song.Artist,
+		Album:  song.Album,
+		Genre:  song.Genre,
+	  }
+	  if err := stream.Send(res); err != nil {
+		return err
+	  }
+	}
+	return nil
+  }
   

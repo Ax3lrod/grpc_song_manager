@@ -115,3 +115,30 @@ func (r *SongRepository) Delete(ctx context.Context, id string) error {
     _, err = r.collection.DeleteOne(ctx, bson.M{"_id": oid})
     return err
 }
+
+func (r *SongRepository) FindByGenre(ctx context.Context, genre string) ([]model.Song_Model, error) {
+    filter := bson.M{"genre": genre}
+    cursor, err := r.collection.Find(ctx, filter)
+    if err != nil {
+      return nil, err
+    }
+    var songs []model.Song_Model
+    if err := cursor.All(ctx, &songs); err != nil {
+      return nil, err
+    }
+    return songs, nil
+  }
+  
+  func (r *SongRepository) FindByArtist(ctx context.Context, artist string) ([]model.Song_Model, error) {
+    filter := bson.M{"artist": artist}
+    cursor, err := r.collection.Find(ctx, filter)
+    if err != nil {
+      return nil, err
+    }
+    var songs []model.Song_Model
+    if err := cursor.All(ctx, &songs); err != nil {
+      return nil, err
+    }
+    return songs, nil
+  }
+  
