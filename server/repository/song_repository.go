@@ -77,9 +77,33 @@ func (r *SongRepository) Update(ctx context.Context, song *model.Song_Model) (*m
     if err != nil {
         return nil, err
     }
-    if _, err := r.collection.ReplaceOne(ctx, bson.M{"_id": oid}, song); err != nil {
+
+    set := bson.M{}
+
+    if song.Title != "" {
+        set["title"] = song.Title
+    }
+    if song.Artist != "" {
+        set["artist"] = song.Artist
+    }
+    if song.Album != "" {
+        set["album"] = song.Album
+    }
+    if song.Genre != "" {
+        set["genre"] = song.Genre
+    }
+
+    if len(set) == 0 {
+        return nil, fmt.Errorf("no valid fields to update")
+    }
+
+    update := bson.M{"$set": set}
+
+    _, err = r.collection.UpdateOne(ctx, bson.M{"_id": oid}, update)
+    if err != nil {
         return nil, err
     }
+
     return song, nil
 }
 

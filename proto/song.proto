@@ -29,10 +29,35 @@ message SongInput {
 
 message Empty {}
 
+message PlaylistAction {
+  enum ActionType { ADD = 0; REMOVE = 1; MOVE = 2; }
+  ActionType type       = 1;
+  SongInput song        = 2; // untuk ADD
+  string song_id        = 3; // untuk REMOVE / MOVE
+  int32 new_position    = 4; // untuk MOVE
+}
+
+message PlaylistUpdate {
+  repeated Song songs = 1;  // state playlist terkini
+}
+
+message RecommendRequest {
+  string mood            = 1; // e.g. "happy", "chill"
+  repeated string skip_genres = 2;
+}
+
+message RecommendResponse {
+  Song song   = 1;
+  string reason = 2;       // misal: "because you said chill"
+}
+
 service SongService {
   rpc CreateSong(SongInput) returns (Song);
   rpc GetSong(SongRequest) returns (Song);
   rpc ListSongs(Empty) returns (SongList);
   rpc UpdateSong(Song) returns (Song);
   rpc DeleteSong(SongRequest) returns (Empty);
+  rpc SongChat(stream SongInput) returns (stream Song);
+  rpc CollaboratePlaylist(stream PlaylistAction) returns (stream PlaylistUpdate);
+  rpc Recommend(stream RecommendRequest) returns (stream RecommendResponse);
 }

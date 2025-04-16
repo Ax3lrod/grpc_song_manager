@@ -5,32 +5,45 @@ import (
 	"log"
 	"net"
 
-	song "grpc-song-manager/proto"
+	pb "grpc-song-manager/proto"
 	"grpc-song-manager/server/handler"
 	"grpc-song-manager/server/repository"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<YOUR_MONGODB_ATLAS_URI>"))
+	// 1. Connect ke MongoDB Atlas
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(
+		"mongodb+srv://axlr0d_:axelrod@cluster0.r5mqd.mongodb.net/insis_project_2?retryWrites=true&w=majority&appName=Cluster0",
+	))
 	if err != nil {
 		log.Fatal(err)
 	}
 	db := client.Database("insis_project_2")
 	repo := repository.NewSongRepository(db)
 
+	// 2. Listen TCP
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s := grpc.NewServer()
-	song.RegisterSongServiceServer(s, &handler.SongService{Repo: repo})
+	// 3. Buat gRPC server & register service
+	grpcServer := grpc.NewServer()
+
+	// Pakai NewSongService agar internal maps ter‑init
+	svc := handler.NewSongService(repo)
+	pb.RegisterSongServiceServer(grpcServer, svc)
+
+	// 4. Enable reflection untuk grpcui/grpcurl
+	reflection.Register(grpcServer)
+
 	log.Println("gRPC server running at :50051")
-	if err := s.Serve(lis); err != nil {
+	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
 }

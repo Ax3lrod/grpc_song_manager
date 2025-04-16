@@ -19,11 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SongService_CreateSong_FullMethodName = "/song.SongService/CreateSong"
-	SongService_GetSong_FullMethodName    = "/song.SongService/GetSong"
-	SongService_ListSongs_FullMethodName  = "/song.SongService/ListSongs"
-	SongService_UpdateSong_FullMethodName = "/song.SongService/UpdateSong"
-	SongService_DeleteSong_FullMethodName = "/song.SongService/DeleteSong"
+	SongService_CreateSong_FullMethodName          = "/song.SongService/CreateSong"
+	SongService_GetSong_FullMethodName             = "/song.SongService/GetSong"
+	SongService_ListSongs_FullMethodName           = "/song.SongService/ListSongs"
+	SongService_UpdateSong_FullMethodName          = "/song.SongService/UpdateSong"
+	SongService_DeleteSong_FullMethodName          = "/song.SongService/DeleteSong"
+	SongService_SongChat_FullMethodName            = "/song.SongService/SongChat"
+	SongService_CollaboratePlaylist_FullMethodName = "/song.SongService/CollaboratePlaylist"
+	SongService_Recommend_FullMethodName           = "/song.SongService/Recommend"
 )
 
 // SongServiceClient is the client API for SongService service.
@@ -35,6 +38,9 @@ type SongServiceClient interface {
 	ListSongs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SongList, error)
 	UpdateSong(ctx context.Context, in *Song, opts ...grpc.CallOption) (*Song, error)
 	DeleteSong(ctx context.Context, in *SongRequest, opts ...grpc.CallOption) (*Empty, error)
+	SongChat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SongInput, Song], error)
+	CollaboratePlaylist(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PlaylistAction, PlaylistUpdate], error)
+	Recommend(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[RecommendRequest, RecommendResponse], error)
 }
 
 type songServiceClient struct {
@@ -95,6 +101,45 @@ func (c *songServiceClient) DeleteSong(ctx context.Context, in *SongRequest, opt
 	return out, nil
 }
 
+func (c *songServiceClient) SongChat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SongInput, Song], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SongService_ServiceDesc.Streams[0], SongService_SongChat_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SongInput, Song]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_SongChatClient = grpc.BidiStreamingClient[SongInput, Song]
+
+func (c *songServiceClient) CollaboratePlaylist(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PlaylistAction, PlaylistUpdate], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SongService_ServiceDesc.Streams[1], SongService_CollaboratePlaylist_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[PlaylistAction, PlaylistUpdate]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_CollaboratePlaylistClient = grpc.BidiStreamingClient[PlaylistAction, PlaylistUpdate]
+
+func (c *songServiceClient) Recommend(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[RecommendRequest, RecommendResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SongService_ServiceDesc.Streams[2], SongService_Recommend_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[RecommendRequest, RecommendResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_RecommendClient = grpc.BidiStreamingClient[RecommendRequest, RecommendResponse]
+
 // SongServiceServer is the server API for SongService service.
 // All implementations must embed UnimplementedSongServiceServer
 // for forward compatibility.
@@ -104,6 +149,9 @@ type SongServiceServer interface {
 	ListSongs(context.Context, *Empty) (*SongList, error)
 	UpdateSong(context.Context, *Song) (*Song, error)
 	DeleteSong(context.Context, *SongRequest) (*Empty, error)
+	SongChat(grpc.BidiStreamingServer[SongInput, Song]) error
+	CollaboratePlaylist(grpc.BidiStreamingServer[PlaylistAction, PlaylistUpdate]) error
+	Recommend(grpc.BidiStreamingServer[RecommendRequest, RecommendResponse]) error
 	mustEmbedUnimplementedSongServiceServer()
 }
 
@@ -128,6 +176,15 @@ func (UnimplementedSongServiceServer) UpdateSong(context.Context, *Song) (*Song,
 }
 func (UnimplementedSongServiceServer) DeleteSong(context.Context, *SongRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSong not implemented")
+}
+func (UnimplementedSongServiceServer) SongChat(grpc.BidiStreamingServer[SongInput, Song]) error {
+	return status.Errorf(codes.Unimplemented, "method SongChat not implemented")
+}
+func (UnimplementedSongServiceServer) CollaboratePlaylist(grpc.BidiStreamingServer[PlaylistAction, PlaylistUpdate]) error {
+	return status.Errorf(codes.Unimplemented, "method CollaboratePlaylist not implemented")
+}
+func (UnimplementedSongServiceServer) Recommend(grpc.BidiStreamingServer[RecommendRequest, RecommendResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method Recommend not implemented")
 }
 func (UnimplementedSongServiceServer) mustEmbedUnimplementedSongServiceServer() {}
 func (UnimplementedSongServiceServer) testEmbeddedByValue()                     {}
@@ -240,6 +297,27 @@ func _SongService_DeleteSong_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SongService_SongChat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SongServiceServer).SongChat(&grpc.GenericServerStream[SongInput, Song]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_SongChatServer = grpc.BidiStreamingServer[SongInput, Song]
+
+func _SongService_CollaboratePlaylist_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SongServiceServer).CollaboratePlaylist(&grpc.GenericServerStream[PlaylistAction, PlaylistUpdate]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_CollaboratePlaylistServer = grpc.BidiStreamingServer[PlaylistAction, PlaylistUpdate]
+
+func _SongService_Recommend_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SongServiceServer).Recommend(&grpc.GenericServerStream[RecommendRequest, RecommendResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SongService_RecommendServer = grpc.BidiStreamingServer[RecommendRequest, RecommendResponse]
+
 // SongService_ServiceDesc is the grpc.ServiceDesc for SongService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -268,6 +346,25 @@ var SongService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SongService_DeleteSong_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SongChat",
+			Handler:       _SongService_SongChat_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "CollaboratePlaylist",
+			Handler:       _SongService_CollaboratePlaylist_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Recommend",
+			Handler:       _SongService_Recommend_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "proto/song.proto",
 }
