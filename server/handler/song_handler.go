@@ -10,6 +10,9 @@ import (
 	"grpc-song-manager/server/model"
 	"grpc-song-manager/server/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
+	"strings"
 )
 
 type SongService struct {
@@ -37,6 +40,10 @@ func NewSongService(repo *repository.SongRepository) *SongService {
   }
 
 func (s *SongService) CreateSong(ctx context.Context, in *pb.SongInput) (*pb.Song, error) {
+	if in.Title == "" || in.Artist == "" || in.Album == "" || in.Genre == "" {
+		return nil, status.Error(codes.InvalidArgument, "all song fields must be filled")
+	}
+
 	song := &model.Song_Model{
 		Title:  in.Title,
 		Artist: in.Artist,
@@ -45,18 +52,23 @@ func (s *SongService) CreateSong(ctx context.Context, in *pb.SongInput) (*pb.Son
 	}
 	res, err := s.Repo.Create(ctx, song)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to create song: %v", err)
 	}
 	return toProto(res), nil
 }
 
+
 func (s *SongService) GetSong(ctx context.Context, in *pb.SongRequest) (*pb.Song, error) {
+	if in.Id == "" {
+		return nil, status.Error(codes.InvalidArgument, "song ID must be provided")
+	}
 	song, err := s.Repo.GetByID(ctx, in.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.NotFound, "song not found: %v", err)
 	}
 	return toProto(song), nil
 }
+
 
 func (s *SongService) ListSongs(ctx context.Context, _ *pb.Empty) (*pb.SongList, error) {
 	songs, err := s.Repo.List(ctx)
@@ -87,6 +99,7 @@ func (s *SongService) UpdateSong(ctx context.Context, in *pb.Song) (*pb.Song, er
 
 func (s *SongService) DeleteSong(ctx context.Context, in *pb.SongRequest) (*pb.Empty, error) {
 	err := s.Repo.Delete(ctx, in.Id)
+
 	if err != nil {
 		return nil, err
 	}
@@ -107,17 +120,19 @@ func toProto(songModel *model.Song_Model) *pb.Song {
 // akan menyimpan (Create) lalu langsung mengirim balik Song yang baru dibuat.
 func (s *SongService) SongChat(stream pb.SongService_SongChatServer) error {
 	for {
-		// terima SongInput dari client
 		in, err := stream.Recv()
 		if err == io.EOF {
-			// client sudah selesai mengirim
 			return nil
 		}
 		if err != nil {
-			return err
+			return status.Errorf(codes.Unknown, "error receiving from stream: %v", err)
 		}
 
-		// simpan ke DB
+		// Validasi input
+		if in.Title == "" || in.Artist == "" {
+			return status.Error(codes.InvalidArgument, "title and artist are required")
+		}
+
 		song := &model.Song_Model{
 			Title:  in.Title,
 			Artist: in.Artist,
@@ -126,18 +141,11 @@ func (s *SongService) SongChat(stream pb.SongService_SongChatServer) error {
 		}
 		created, err := s.Repo.Create(stream.Context(), song)
 		if err != nil {
-			return err
+			return status.Errorf(codes.Internal, "failed to save song: %v", err)
 		}
 
-		// kirim balik ke client
-		if err := stream.Send(&pb.Song{
-			Id:     created.ID,
-			Title:  created.Title,
-			Artist: created.Artist,
-			Album:  created.Album,
-			Genre:  created.Genre,
-		}); err != nil {
-			return err
+		if err := stream.Send(toProto(created)); err != nil {
+			return status.Errorf(codes.Unknown, "failed to send song to client: %v", err)
 		}
 	}
 }
@@ -376,45 +384,52 @@ func (s *SongService) StreamAllSongs(req *pb.Empty, stream pb.SongService_Stream
 	return nil
   }
   
-func (s *SongService) StreamSongsByGenre(req *pb.GenreRequest, stream pb.SongService_StreamSongsByGenreServer) error {
-	ctx := stream.Context()
-	songs, err := s.Repo.FindByGenre(ctx, req.Genre)
-	if err != nil {
-	  return err
-	}
-	for _, song := range songs {
-	  res := &pb.Song{
-		Id:     song.ID,
-		Title:  song.Title,
-		Artist: song.Artist,
-		Album:  song.Album,
-		Genre:  song.Genre,
-	  }
-	  if err := stream.Send(res); err != nil {
-		return err
-	  }
-	}
-	return nil
-  }
-  
 func (s *SongService) StreamSongsByArtist(req *pb.ArtistRequest, stream pb.SongService_StreamSongsByArtistServer) error {
 	ctx := stream.Context()
-	songs, err := s.Repo.FindByArtist(ctx, req.Artist)
+	artistQuery := strings.ToLower(req.Artist)
+	songs, err := s.Repo.FindByArtist(ctx, artistQuery)
+	if len(songs) == 0 {
+		return status.Errorf(codes.NotFound, "no songs found for artist: %s", req.Artist)
+	}
 	if err != nil {
-	  return err
+		return err
 	}
 	for _, song := range songs {
-	  res := &pb.Song{
-		Id:     song.ID,
-		Title:  song.Title,
-		Artist: song.Artist,
-		Album:  song.Album,
-		Genre:  song.Genre,
-	  }
-	  if err := stream.Send(res); err != nil {
-		return err
-	  }
+		res := &pb.Song{
+			Id:     song.ID,
+			Title:  song.Title,
+			Artist: song.Artist,
+			Album:  song.Album,
+			Genre:  song.Genre,
+		}
+		if err := stream.Send(res); err != nil {
+			return err
+		}
 	}
 	return nil
-  }
-  
+}
+
+func (s *SongService) StreamSongsByGenre(req *pb.GenreRequest, stream pb.SongService_StreamSongsByGenreServer) error {
+	ctx := stream.Context()
+	genreQuery := strings.ToLower(req.Genre)
+	songs, err := s.Repo.FindByGenre(ctx, genreQuery)
+	if len(songs) == 0 {
+		return status.Errorf(codes.NotFound, "no songs found for genre: %s", req.Genre)
+	}
+	if err != nil {
+		return err
+	}
+	for _, song := range songs {
+		res := &pb.Song{
+			Id:     song.ID,
+			Title:  song.Title,
+			Artist: song.Artist,
+			Album:  song.Album,
+			Genre:  song.Genre,
+		}
+		if err := stream.Send(res); err != nil {
+			return err
+		}
+	}
+	return nil
+}

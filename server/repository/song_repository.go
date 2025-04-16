@@ -116,29 +116,53 @@ func (r *SongRepository) Delete(ctx context.Context, id string) error {
     return err
 }
 
-func (r *SongRepository) FindByGenre(ctx context.Context, genre string) ([]model.Song_Model, error) {
-    filter := bson.M{"genre": genre}
-    cursor, err := r.collection.Find(ctx, filter)
-    if err != nil {
-      return nil, err
-    }
-    var songs []model.Song_Model
-    if err := cursor.All(ctx, &songs); err != nil {
-      return nil, err
-    }
-    return songs, nil
-  }
-  
-  func (r *SongRepository) FindByArtist(ctx context.Context, artist string) ([]model.Song_Model, error) {
-    filter := bson.M{"artist": artist}
-    cursor, err := r.collection.Find(ctx, filter)
-    if err != nil {
-      return nil, err
-    }
-    var songs []model.Song_Model
-    if err := cursor.All(ctx, &songs); err != nil {
-      return nil, err
-    }
-    return songs, nil
-  }
-  
+func (r *SongRepository) FindByArtist(ctx context.Context, artist string) ([]*model.Song_Model, error) {
+	filter := bson.M{
+		"artist": bson.M{
+			"$regex":   artist,
+			"$options": "i", // <== ignore case
+		},
+	}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var songs []*model.Song_Model
+	for cursor.Next(ctx) {
+		var song model.Song_Model
+		if err := cursor.Decode(&song); err != nil {
+			return nil, err
+		}
+		songs = append(songs, &song)
+	}
+	return songs, nil
+}
+
+func (r *SongRepository) FindByGenre(ctx context.Context, genre string) ([]*model.Song_Model, error) {
+	filter := bson.M{
+		"genre": bson.M{
+			"$regex":   genre,
+			"$options": "i", // <== ignore case
+		},
+	}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var songs []*model.Song_Model
+	for cursor.Next(ctx) {
+		var song model.Song_Model
+		if err := cursor.Decode(&song); err != nil {
+			return nil, err
+		}
+		songs = append(songs, &song)
+	}
+	return songs, nil
+}
+
